@@ -1,0 +1,18 @@
+package com.bus_reservation_system.demo.ExceptionHandler;
+
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class MyErrorDetails {
+
+    private LocalDateTime dateAndTime;
+    private String message;
+    private String description;
+
+}
