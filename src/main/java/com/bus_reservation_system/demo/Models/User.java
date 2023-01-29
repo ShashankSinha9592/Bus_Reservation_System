@@ -42,9 +42,9 @@ public class User {
     @Past(message = "Enter a valid date of birth")
     private LocalDate dateOfBirth;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private Reservation reservation;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    private List<Reservation> reservations;
 
-    @OneToMany
+    @OneToMany(mappedBy = "user")
     private List<Feedback> feedbacks;
 }

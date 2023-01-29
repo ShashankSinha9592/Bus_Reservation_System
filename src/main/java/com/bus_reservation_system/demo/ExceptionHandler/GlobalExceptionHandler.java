@@ -1,6 +1,9 @@
 package com.bus_reservation_system.demo.ExceptionHandler;
 
 
+import com.bus_reservation_system.demo.Models.Bus;
+import com.bus_reservation_system.demo.Models.Feedback;
+import com.bus_reservation_system.demo.Models.Route;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -18,9 +21,78 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(LoginException.class)
+    public ResponseEntity<MyErrorDetails> loginExceptionHandler(LoginException exc, WebRequest req){
+        MyErrorDetails err = new MyErrorDetails();
+        err.setDateAndTime(LocalDateTime.now());
+        err.setMessage(exc.getMessage());
+        err.setDescription(req.getDescription(false));
 
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+
+    }
+    @ExceptionHandler(FeedbackException.class)
+    public ResponseEntity<MyErrorDetails> feedbackExceptionHandler(FeedbackException exc, WebRequest req){
+        MyErrorDetails err = new MyErrorDetails();
+        err.setDateAndTime(LocalDateTime.now());
+        err.setMessage(exc.getMessage());
+        err.setDescription(req.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+
+    }
+    @ExceptionHandler(ReservationException.class)
+    public ResponseEntity<MyErrorDetails> reservationExceptionHandler(ReservationException exc, WebRequest req){
+        MyErrorDetails err = new MyErrorDetails();
+        err.setDateAndTime(LocalDateTime.now());
+        err.setMessage(exc.getMessage());
+        err.setDescription(req.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+
+    }
+    @ExceptionHandler(RouteException.class)
+    public ResponseEntity<MyErrorDetails> routeExceptionHandler(RouteException exc, WebRequest req){
+        MyErrorDetails err = new MyErrorDetails();
+        err.setDateAndTime(LocalDateTime.now());
+        err.setMessage(exc.getMessage());
+        err.setDescription(req.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+
+    }
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<MyErrorDetails> userExceptionHandler(UserException exc, WebRequest req){
+        MyErrorDetails err = new MyErrorDetails();
+        err.setDateAndTime(LocalDateTime.now());
+        err.setMessage(exc.getMessage());
+        err.setDescription(req.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+
+    }
+    @ExceptionHandler(BusException.class)
+    public ResponseEntity<MyErrorDetails> busExceptionHandler(BusException exc, WebRequest req){
+        MyErrorDetails err = new MyErrorDetails();
+        err.setDateAndTime(LocalDateTime.now());
+        err.setMessage(exc.getMessage());
+        err.setDescription(req.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+
+    }
+    @ExceptionHandler(AdminException.class)
+    public ResponseEntity<MyErrorDetails> adminExceptionHandler(AdminException exc, WebRequest req){
+        MyErrorDetails err = new MyErrorDetails();
+        err.setDateAndTime(LocalDateTime.now());
+        err.setMessage(exc.getMessage());
+        err.setDescription(req.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+
+    }
     @ExceptionHandler(SQLException.class)
-    public ResponseEntity<MyErrorDetails> genericExceptionHandler(SQLException exc, WebRequest req){
+    public ResponseEntity<MyErrorDetails> sqlExceptionHandler(SQLException exc, WebRequest req){
         MyErrorDetails err = new MyErrorDetails();
         err.setDateAndTime(LocalDateTime.now());
         err.setMessage(exc.getMessage());
@@ -41,7 +113,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<MyErrorDetails> myMANVExceptionHandler(MethodArgumentNotValidException me, WebRequest req)  {
+    public ResponseEntity<MyErrorDetails> methodArgumentExceptionHandler(MethodArgumentNotValidException me, WebRequest req)  {
 
 
         MyErrorDetails err=new MyErrorDetails();
@@ -85,7 +157,7 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
-    public ResponseEntity<MyErrorDetails> sqlExceptionHandler(SQLIntegrityConstraintViolationException exc , WebRequest req){
+    public ResponseEntity<MyErrorDetails> sqlIntegrityExceptionHandler(SQLIntegrityConstraintViolationException exc , WebRequest req){
         MyErrorDetails myError = new MyErrorDetails();
         myError.setMessage(exc.getMessage());
         myError.setDescription((req.getDescription(false)));
@@ -95,7 +167,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<MyErrorDetails> sqlExceptionHandler(ConstraintViolationException exc , WebRequest req){
+    public ResponseEntity<MyErrorDetails> constraintExceptionHandler(ConstraintViolationException exc , WebRequest req){
         MyErrorDetails myError = new MyErrorDetails();
         myError.setMessage(exc.getMessage());
         myError.setDescription((req.getDescription(false)));
@@ -105,7 +177,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<MyErrorDetails> sqlExceptionHandler(HttpMessageNotReadableException exc , WebRequest req){
+    public ResponseEntity<MyErrorDetails> httpMessageExceptionHandler(HttpMessageNotReadableException exc , WebRequest req){
         MyErrorDetails myError = new MyErrorDetails();
         myError.setMessage(exc.getHttpInputMessage().toString());
         myError.setDescription((req.getDescription(false)));

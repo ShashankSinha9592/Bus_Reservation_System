@@ -36,7 +36,10 @@ public class Reservation {
 
     private String destination;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private Bus bus;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    private User user;
 
 }

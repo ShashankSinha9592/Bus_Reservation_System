@@ -31,7 +31,7 @@ public class Route {
     @Max(value = 10000,message = "distance must be atmost 10000")
     private Integer distance;
 
-    @OneToMany
+    @OneToMany(mappedBy = "route")
     private List<Bus> buses;
 
 }

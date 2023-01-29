@@ -44,7 +44,7 @@ public class Bus {
     @ManyToOne(cascade = CascadeType.ALL)
     private Route route;
 
-    @OneToMany
+    @OneToMany(mappedBy = "bus")
     private List<Feedback> feedbacks;
 
 
