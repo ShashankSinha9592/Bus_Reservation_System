@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface UserLoginRepo extends JpaRepository<UserCurrentSession,Integer> {
 
-    public Optional<UserCurrentSession> findByKey(String key) throws LoginException;
+    public Optional<UserCurrentSession> findByToken(String key) throws LoginException;
 
 }

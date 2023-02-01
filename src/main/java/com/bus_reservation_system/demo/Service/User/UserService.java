@@ -13,7 +13,7 @@ public interface UserService {
 
     public User updateUser(User user , String key) throws LoginException, UserException;
 
-    public User viewUser(Integer uId, String key) throws LoginException, UserException;
+    public User viewUser(Integer uId, String key,String check) throws LoginException, UserException;
 
     public User deleteUser(Integer uId, String key) throws UserException, LoginException;
 

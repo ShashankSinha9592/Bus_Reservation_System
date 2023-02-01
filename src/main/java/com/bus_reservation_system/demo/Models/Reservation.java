@@ -1,9 +1,12 @@
 package com.bus_reservation_system.demo.Models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.Future;
+import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -26,20 +29,21 @@ public class Reservation {
     @NotNull(message = "reservation type must not be null")
     private String reservationType;
 
-    @Future(message = "Enter a valid date")
+    @FutureOrPresent(message = "Enter a valid date")
     private LocalDate reservationDate;
 
-    @Future(message = "Enter a valid time")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
+    @FutureOrPresent(message = "Enter a valid time")
     private LocalTime reservationTime;
 
     private String source;
 
     private String destination;
-
-    @OneToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
+    @OneToOne
     private Bus bus;
-
-    @ManyToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
+    @ManyToOne
     private User user;
 
 }

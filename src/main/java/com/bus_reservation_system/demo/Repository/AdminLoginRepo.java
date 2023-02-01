@@ -11,6 +11,6 @@ import java.util.Optional;
 @Repository
 public interface AdminLoginRepo extends JpaRepository<AdminCurrentSession,Integer> {
 
-    public Optional<AdminCurrentSession> findByKey(String key) throws LoginException;
+    public Optional<AdminCurrentSession> findByToken(String key) throws LoginException;
 
 }

@@ -1,5 +1,6 @@
 package com.bus_reservation_system.demo.Service.LoginService;
 
+import com.bus_reservation_system.demo.ExceptionHandler.AdminException;
 import com.bus_reservation_system.demo.ExceptionHandler.LoginException;
 import com.bus_reservation_system.demo.ExceptionHandler.UserException;
 import com.bus_reservation_system.demo.Models.Login;
@@ -8,20 +9,23 @@ import com.bus_reservation_system.demo.Models.UserCurrentSession;
 import com.bus_reservation_system.demo.Repository.UserLoginRepo;
 import com.bus_reservation_system.demo.Repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
+@Service
 public class UserLoginServiceImpl implements UserLoginService{
 
     @Autowired
     UserLoginRepo userLoginRepo;
-
+    @Autowired
     UserRepo userRepo;
     @Override
     public String loginUser(Login loginDetails) throws LoginException,UserException {
+
         Optional<User> opt = userRepo.findByEmail(loginDetails.getEmail());
 
         if(opt.isEmpty()){
@@ -29,7 +33,7 @@ public class UserLoginServiceImpl implements UserLoginService{
         }
         User user = opt.get();
 
-        if(user.getPassword().equals(loginDetails.getPassword())==false){
+        if(!user.getPassword().equals(loginDetails.getPassword())){
             throw new LoginException("Wrong password");
         }
 
@@ -42,14 +46,31 @@ public class UserLoginServiceImpl implements UserLoginService{
         String key = randomStringGenerator();
 
         UserCurrentSession userCurrentSession = new UserCurrentSession();
-        userCurrentSession.setKey(key);
+        userCurrentSession.setToken(key);
         userCurrentSession.setUserId(user.getUserid());
-        userCurrentSession.setLocalDateTime(LocalDateTime.now());
-
+        userCurrentSession.setTime(LocalDateTime.now());
+        System.out.println(loginDetails);
+        System.out.println(userCurrentSession);
         UserCurrentSession returnedSession = userLoginRepo.save(userCurrentSession);
+        System.out.println("check");
+        return returnedSession.getToken();
 
-        return returnedSession.getKey();
 
+    }
+
+    public boolean logout(String key) throws LoginException{
+
+        Optional<UserCurrentSession> opt = userLoginRepo.findByToken(key);
+
+        if(opt.isEmpty()){
+            throw new LoginException("Token/key does not exists");
+        }
+
+        UserCurrentSession userCurrentSession = opt.get();
+
+        userLoginRepo.delete(userCurrentSession);
+
+        return true;
 
     }
     public static String randomStringGenerator() {

@@ -11,6 +11,7 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@ToString
 public class Login {
     @NotNull(message = "email must not be null")
     @Email(message = "Invalid email")

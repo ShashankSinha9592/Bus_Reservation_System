@@ -6,13 +6,17 @@ import com.bus_reservation_system.demo.ExceptionHandler.UserException;
 import com.bus_reservation_system.demo.Models.*;
 import com.bus_reservation_system.demo.Repository.AdminLoginRepo;
 import com.bus_reservation_system.demo.Repository.AdminRepo;
+import net.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
+@Service
 public class AdminLoginServiceImpl implements AdminLoginService{
 
     @Autowired
@@ -41,19 +45,37 @@ public class AdminLoginServiceImpl implements AdminLoginService{
             throw new LoginException("Admin is already logged in with this email ");
         }
 
-        String key = randomStringGenerator();
+        String key = RandomString.make(6);
 
         AdminCurrentSession adminCurrentSession = new AdminCurrentSession();
-        adminCurrentSession.setKey(key);
+
+        adminCurrentSession.setToken(key);
         adminCurrentSession.setAdminId(admin.getAdminId());
-        adminCurrentSession.setLocalDateTime(LocalDateTime.now());
+        adminCurrentSession.setTime(LocalDateTime.now());
+
+        System.out.println(adminCurrentSession);
 
         AdminCurrentSession returnedSession = adminLoginRepo.save(adminCurrentSession);
-
-        return returnedSession.getKey();
+        System.out.println("checking");
+        return returnedSession.getToken();
 
     }
+    public boolean logout(String key) throws LoginException{
 
+        Optional<AdminCurrentSession> opt = adminLoginRepo.findByToken(key);
+
+        if(opt.isEmpty()){
+            throw new LoginException("Token/key does not exists");
+        }
+
+        AdminCurrentSession adminCurrentSession = opt.get();
+
+        adminLoginRepo.delete(adminCurrentSession);
+
+        return true;
+
+
+    }
     public static String randomStringGenerator() {
 
         // length is bounded by 256 Character
@@ -62,13 +84,10 @@ public class AdminLoginServiceImpl implements AdminLoginService{
         new Random().nextBytes(array);
 
         String randomString
-                = new String(array, Charset.forName("UTF-8"));
+                = new String(array, StandardCharsets.UTF_8);
 
-        // Create a StringBuffer to store the result
         StringBuffer r = new StringBuffer();
 
-        // Append first 20 alphanumeric characters
-        // from the generated random String into the result
         for (int k = 0; k < randomString.length(); k++) {
 
             char ch = randomString.charAt(k);

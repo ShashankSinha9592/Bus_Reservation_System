@@ -140,51 +140,51 @@ public class GlobalExceptionHandler {
 
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<MyErrorDetails> httpExceptionHandler(HttpMessageNotReadableException me, WebRequest req)  {
+//    @ExceptionHandler(HttpMessageNotReadableException.class)
+//    public ResponseEntity<MyErrorDetails> httpExceptionHandler(HttpMessageNotReadableException me, WebRequest req)  {
+//
+//
+//        MyErrorDetails err=new MyErrorDetails();
+//        err.setDateAndTime(LocalDateTime.now());
+//        err.setDescription(req.getDescription(false));
+//        err.setMessage(me.getMessage());
+//
+//
+//        return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
+//
+//    }
 
 
-        MyErrorDetails err=new MyErrorDetails();
-        err.setDateAndTime(LocalDateTime.now());
-        err.setDescription(req.getDescription(false));
-        err.setMessage(me.getMessage());
 
-
-        return new ResponseEntity<>(err,HttpStatus.BAD_REQUEST);
-
-    }
-
-
-
-    @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
-    public ResponseEntity<MyErrorDetails> sqlIntegrityExceptionHandler(SQLIntegrityConstraintViolationException exc , WebRequest req){
-        MyErrorDetails myError = new MyErrorDetails();
-        myError.setMessage(exc.getMessage());
-        myError.setDescription((req.getDescription(false)));
-        myError.setDateAndTime(LocalDateTime.now());
-
-        return new ResponseEntity<>(myError, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<MyErrorDetails> constraintExceptionHandler(ConstraintViolationException exc , WebRequest req){
-        MyErrorDetails myError = new MyErrorDetails();
-        myError.setMessage(exc.getMessage());
-        myError.setDescription((req.getDescription(false)));
-        myError.setDateAndTime(LocalDateTime.now());
-
-        return new ResponseEntity<>(myError, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<MyErrorDetails> httpMessageExceptionHandler(HttpMessageNotReadableException exc , WebRequest req){
-        MyErrorDetails myError = new MyErrorDetails();
-        myError.setMessage(exc.getHttpInputMessage().toString());
-        myError.setDescription((req.getDescription(false)));
-        myError.setDateAndTime(LocalDateTime.now());
-
-        return new ResponseEntity<>(myError, HttpStatus.BAD_REQUEST);
-    }
+//    @ExceptionHandler(SQLIntegrityConstraintViolationException.class)
+//    public ResponseEntity<MyErrorDetails> sqlIntegrityExceptionHandler(SQLIntegrityConstraintViolationException exc , WebRequest req){
+//        MyErrorDetails myError = new MyErrorDetails();
+//        myError.setMessage(exc.getMessage());
+//        myError.setDescription((req.getDescription(false)));
+//        myError.setDateAndTime(LocalDateTime.now());
+//
+//        return new ResponseEntity<>(myError, HttpStatus.BAD_REQUEST);
+//    }
+//
+//    @ExceptionHandler(ConstraintViolationException.class)
+//    public ResponseEntity<MyErrorDetails> constraintExceptionHandler(ConstraintViolationException exc , WebRequest req){
+//        MyErrorDetails myError = new MyErrorDetails();
+//        myError.setMessage(exc.getMessage());
+//        myError.setDescription((req.getDescription(false)));
+//        myError.setDateAndTime(LocalDateTime.now());
+//
+//        return new ResponseEntity<>(myError, HttpStatus.BAD_REQUEST);
+//    }
+//
+//    @ExceptionHandler(HttpMessageNotReadableException.class)
+//    public ResponseEntity<MyErrorDetails> httpMessageExceptionHandler(HttpMessageNotReadableException exc , WebRequest req){
+//        MyErrorDetails myError = new MyErrorDetails();
+//        myError.setMessage(exc.getHttpInputMessage().toString());
+//        myError.setDescription((req.getDescription(false)));
+//        myError.setDateAndTime(LocalDateTime.now());
+//
+//        return new ResponseEntity<>(myError, HttpStatus.BAD_REQUEST);
+//    }
 
 }
 

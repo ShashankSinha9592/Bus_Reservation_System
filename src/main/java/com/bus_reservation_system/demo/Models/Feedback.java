@@ -1,5 +1,6 @@
 package com.bus_reservation_system.demo.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -34,11 +35,12 @@ public class Feedback {
     private String comments;
 
     private LocalDate feedbackDate;
-
-    @ManyToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
+    @ManyToOne
     private User user;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @JsonIgnore
+    @ManyToOne
     private Bus bus;
 
 }

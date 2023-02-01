@@ -1,5 +1,6 @@
 package com.bus_reservation_system.demo.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -31,6 +32,7 @@ public class Route {
     @Max(value = 10000,message = "distance must be atmost 10000")
     private Integer distance;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "route")
     private List<Bus> buses;
 

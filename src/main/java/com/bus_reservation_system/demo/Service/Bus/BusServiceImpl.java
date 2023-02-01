@@ -13,11 +13,13 @@ import com.bus_reservation_system.demo.Repository.AdminLoginRepo;
 import com.bus_reservation_system.demo.Repository.BusRepo;
 import com.bus_reservation_system.demo.Repository.UserLoginRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class BusServiceImpl implements BusService{
 
     @Autowired
@@ -26,10 +28,11 @@ public class BusServiceImpl implements BusService{
     @Autowired
     private AdminLoginRepo adminLoginRepo;
 
+    @Autowired
     private UserLoginRepo userLoginRepo;
     @Override
     public Bus addBus(Bus bus, String key) throws BusException, LoginException {
-        Optional<AdminCurrentSession> opt = adminLoginRepo.findByKey(key);
+        Optional<AdminCurrentSession> opt = adminLoginRepo.findByToken(key);
 
         if(opt.isEmpty()){
             throw new LoginException("Please login first");
@@ -40,7 +43,7 @@ public class BusServiceImpl implements BusService{
 
     @Override
     public Bus updateBus(Bus bus, String key) throws BusException, LoginException {
-        Optional<AdminCurrentSession> opt = adminLoginRepo.findByKey(key);
+        Optional<AdminCurrentSession> opt = adminLoginRepo.findByToken(key);
 
         if(opt.isEmpty()){
             throw new LoginException("Please login first");
@@ -58,16 +61,16 @@ public class BusServiceImpl implements BusService{
     @Override
     public BusDTO viewBus(Integer busId, String key,String check) throws BusException, LoginException {
 
-        Optional<AdminCurrentSession> adminOpt=null;
-        Optional<UserCurrentSession> userOpt=null;
+        Optional<AdminCurrentSession> adminOpt;
+        Optional<UserCurrentSession> userOpt;
         if(check.equals("admin")) {
-            adminOpt = adminLoginRepo.findByKey(key);
+            adminOpt = adminLoginRepo.findByToken(key);
             if(adminOpt.isEmpty()){
                 throw new AdminException("Please login first");
             }
         }
         if(check.equals("user")){
-            userOpt = userLoginRepo.findByKey(key);
+            userOpt = userLoginRepo.findByToken(key);
             if(userOpt.isEmpty()){
                 throw new UserException("Please login first");
             }
@@ -103,7 +106,7 @@ public class BusServiceImpl implements BusService{
 
     @Override
     public Bus deleteBus(Integer busId, String key) throws BusException, LoginException {
-        Optional<AdminCurrentSession> opt = adminLoginRepo.findByKey(key);
+        Optional<AdminCurrentSession> opt = adminLoginRepo.findByToken(key);
 
         if(opt.isEmpty()){
             throw new LoginException("Please login first");
@@ -127,13 +130,13 @@ public class BusServiceImpl implements BusService{
         Optional<AdminCurrentSession> adminOpt;
         Optional<UserCurrentSession> userOpt;
         if(check.equals("admin")) {
-            adminOpt = adminLoginRepo.findByKey(key);
+            adminOpt = adminLoginRepo.findByToken(key);
             if(adminOpt.isEmpty()){
                 throw new AdminException("Please login first");
             }
         }
         if(check.equals("user")){
-            userOpt = userLoginRepo.findByKey(key);
+            userOpt = userLoginRepo.findByToken(key);
             if(userOpt.isEmpty()){
                 throw new UserException("Please login first");
             }
@@ -172,7 +175,7 @@ public class BusServiceImpl implements BusService{
 
     @Override
     public List<BusDTO> viewAllBus(String key) throws BusException, LoginException {
-        Optional<AdminCurrentSession> opt = adminLoginRepo.findByKey(key);
+        Optional<AdminCurrentSession> opt = adminLoginRepo.findByToken(key);
 
         if(opt.isEmpty()){
             throw new LoginException("Please login first");

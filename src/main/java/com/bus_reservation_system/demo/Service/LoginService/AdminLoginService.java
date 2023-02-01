@@ -8,4 +8,6 @@ public interface AdminLoginService {
 
     public String loginAdmin(Login loginDetails) throws LoginException;
 
+    public boolean logout(String key) throws LoginException;
+
 }

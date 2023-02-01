@@ -7,11 +7,13 @@ import com.bus_reservation_system.demo.ExceptionHandler.UserException;
 import com.bus_reservation_system.demo.Models.*;
 import com.bus_reservation_system.demo.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class ReservationServiceImpl implements ReservationService{
 
     @Autowired
@@ -33,7 +35,7 @@ public class ReservationServiceImpl implements ReservationService{
     @Override
     public Reservation addReservation(Reservation reservation, String key, Integer busId) throws LoginException, ReservationException {
 
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByKey(key);
+        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
 
         if(sessionOpt.isEmpty()){
             throw new LoginException("Please login first");
@@ -58,14 +60,16 @@ public class ReservationServiceImpl implements ReservationService{
         reservation.setBus(bus);
         user.getReservations().add(reservation);
 
-        return reservationRepo.save(reservation);
+        userRepo.save(user);
+
+        return reservation;
 
     }
 
     @Override
     public Reservation updateReservation(Reservation reservation, String key) throws LoginException, ReservationException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByKey(key);
+        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
 
         if(adminOpt.isEmpty()){
             throw new LoginException("Please login first");
@@ -82,9 +86,9 @@ public class ReservationServiceImpl implements ReservationService{
     }
 
     @Override
-    public Reservation deleteReservation(Integer rId, String key) throws ReservationException, LoginException {
+    public Reservation cancelReservation(Integer rId, String key) throws ReservationException, LoginException {
 
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByKey(key);
+        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
 
         if(sessionOpt.isEmpty()){
             throw new LoginException("Please login first");
@@ -107,7 +111,7 @@ public class ReservationServiceImpl implements ReservationService{
     @Override
     public Reservation viewReservationById(Integer rId, String key) throws ReservationException, LoginException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByKey(key);
+        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
 
         if(adminOpt.isEmpty()){
             throw new LoginException("Please login first");
@@ -128,7 +132,7 @@ public class ReservationServiceImpl implements ReservationService{
     @Override
     public List<Reservation> viewReservationByDate(LocalDate date, String key) throws ReservationException, LoginException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByKey(key);
+        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
 
         if(adminOpt.isEmpty()){
             throw new LoginException("Please login first");
@@ -147,7 +151,7 @@ public class ReservationServiceImpl implements ReservationService{
     @Override
     public List<Reservation> viewAllReservation(String key) throws LoginException, ReservationException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByKey(key);
+        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
 
         if(adminOpt.isEmpty()){
             throw new LoginException("Please login first");
@@ -166,7 +170,7 @@ public class ReservationServiceImpl implements ReservationService{
     @Override
     public List<Reservation> viewAllReservationForUser(String key) throws ReservationException, LoginException {
 
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByKey(key);
+        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
 
         if(sessionOpt.isEmpty()){
             throw new LoginException("Please login first");

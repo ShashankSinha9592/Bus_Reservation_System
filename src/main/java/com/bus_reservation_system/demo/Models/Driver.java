@@ -14,7 +14,7 @@ public class Driver {
     @NotNull(message = "Driver name must not be null")
     @NotEmpty(message = "Name should not be empty")
     @NotBlank(message = "Name should not be blank")
-    private Integer driverName;
+    private String driverName;
 
     @Size(min = 10, max = 10, message = "mobile number length must not be less than 10 nor greater than 10")
     private String mobile;

@@ -1,5 +1,6 @@
 package com.bus_reservation_system.demo.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -42,9 +43,10 @@ public class User {
     @Past(message = "Enter a valid date of birth")
     private LocalDate dateOfBirth;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    @JsonIgnore
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
     private List<Reservation> reservations;
-
-    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Feedback> feedbacks;
 }

@@ -4,10 +4,12 @@ import com.bus_reservation_system.demo.ExceptionHandler.*;
 import com.bus_reservation_system.demo.Models.*;
 import com.bus_reservation_system.demo.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class FeedbackServiceImpl implements FeedbackService{
 
     @Autowired
@@ -31,7 +33,7 @@ public class FeedbackServiceImpl implements FeedbackService{
     @Override
     public Feedback addFeedBack(Feedback feedback, String key, Integer busId) throws LoginException, FeedbackException , BusException {
 
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByKey(key);
+        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
 
         if(sessionOpt.isEmpty()){
             throw new LoginException("Please login first");
@@ -49,14 +51,15 @@ public class FeedbackServiceImpl implements FeedbackService{
 
         feedback.setBus(bus);
         feedback.setUser(user);
-
+        userRepo.save(user);
+        busRepo.save(bus);
         return feedbackRepo.save(feedback);
 
     }
 
     @Override
     public Feedback updateFeedback(Feedback feedback, String key) throws FeedbackException, LoginException {
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByKey(key);
+        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
 
         if(sessionOpt.isEmpty()){
             throw new LoginException("Please login first");
@@ -79,7 +82,7 @@ public class FeedbackServiceImpl implements FeedbackService{
 
     @Override
     public Feedback viewFeedbackById(Integer fId, String key) throws FeedbackException, LoginException {
-           Optional<AdminCurrentSession> adminOpt =  adminLoginRepo.findByKey(key);
+           Optional<AdminCurrentSession> adminOpt =  adminLoginRepo.findByToken(key);
 
            if (adminOpt.isEmpty()){
                throw new LoginException("Please login first");
@@ -97,7 +100,7 @@ public class FeedbackServiceImpl implements FeedbackService{
     @Override
     public List<Feedback> viewAllFeedback(String key) throws FeedbackException, LoginException {
 
-        Optional<AdminCurrentSession> adminOpt =  adminLoginRepo.findByKey(key);
+        Optional<AdminCurrentSession> adminOpt =  adminLoginRepo.findByToken(key);
 
         if (adminOpt.isEmpty()){
             throw new LoginException("Please login first");
@@ -119,13 +122,13 @@ public class FeedbackServiceImpl implements FeedbackService{
         Optional<AdminCurrentSession> adminOpt;
         Optional<UserCurrentSession> userOpt;
         if(check.equals("admin")) {
-            adminOpt = adminLoginRepo.findByKey(key);
+            adminOpt = adminLoginRepo.findByToken(key);
             if(adminOpt.isEmpty()){
                 throw new AdminException("Please login first");
             }
         }
         if(check.equals("user")){
-            userOpt = userLoginRepo.findByKey(key);
+            userOpt = userLoginRepo.findByToken(key);
             if(userOpt.isEmpty()){
                 throw new UserException("Please login first");
             }

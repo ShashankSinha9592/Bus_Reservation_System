@@ -18,7 +18,7 @@ public interface RouteService {
 
     public Route deleteRoute(Integer routeId, String key) throws RouteException, LoginException;
 
-    public List<RouteDTO> viewAllRoute(String key ) throws LoginException, RouteException;
+    public List<RouteDTO> viewAllRoute(String key ,String check) throws LoginException, RouteException;
 
     public Route assignRouteToBus(Integer busId, Integer routeId, String key) throws LoginException, BusException, RouteException;
 
