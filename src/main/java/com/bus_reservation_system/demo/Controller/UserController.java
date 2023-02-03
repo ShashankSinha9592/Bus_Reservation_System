@@ -136,5 +136,13 @@ public class UserController {
 
     }
 
+    @GetMapping("/viewbusbyroute/{startRoute}/{endRoute}/{token}")
+    public ResponseEntity<List<BusDTO>> getBusByRoute(@PathVariable String startRoute, @PathVariable String endRoute, @PathVariable String token){
+
+        List<BusDTO> buses = busService.viewBusesByRoute(startRoute,endRoute,token,"user");
+
+        return new ResponseEntity<>(buses,HttpStatus.OK);
+
+    }
 
 }

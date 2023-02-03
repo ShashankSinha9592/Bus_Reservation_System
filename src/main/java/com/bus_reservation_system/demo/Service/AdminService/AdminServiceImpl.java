@@ -18,7 +18,7 @@ public class AdminServiceImpl implements AdminService{
     public Admin registerAdmin(Admin admin) throws AdminException{
 
         Optional<Admin> adminOpt = adminRepo.findByEmail(admin.getEmail());
-        System.out.println("hello admin service");
+
         if(adminOpt.isEmpty()){
             return adminRepo.save(admin);
         }

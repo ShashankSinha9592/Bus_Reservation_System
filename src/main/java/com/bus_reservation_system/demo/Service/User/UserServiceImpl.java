@@ -2,12 +2,12 @@ package com.bus_reservation_system.demo.Service.User;
 
 import com.bus_reservation_system.demo.ExceptionHandler.LoginException;
 import com.bus_reservation_system.demo.ExceptionHandler.UserException;
-import com.bus_reservation_system.demo.Models.AdminCurrentSession;
 import com.bus_reservation_system.demo.Models.User;
 import com.bus_reservation_system.demo.Models.UserCurrentSession;
-import com.bus_reservation_system.demo.Repository.AdminLoginRepo;
 import com.bus_reservation_system.demo.Repository.UserLoginRepo;
 import com.bus_reservation_system.demo.Repository.UserRepo;
+import com.bus_reservation_system.demo.Service.LoginService.Admin.AdminAuthentication;
+import com.bus_reservation_system.demo.Service.LoginService.User.UserAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,14 +18,16 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService{
 
     @Autowired
+    UserAuthentication userAuthentication;
+
+    @Autowired
+    AdminAuthentication adminAuthentication;
+
+    @Autowired
     UserRepo userRepo;
 
     @Autowired
     UserLoginRepo userLoginRepo;
-
-    @Autowired
-    AdminLoginRepo adminLoginRepo;
-
 
     @Override
     public User addUser(User user) throws UserException {
@@ -41,59 +43,31 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public User updateUser(User user, String key) throws LoginException, UserException {
+    public User updateUser(User user, String token) throws LoginException, UserException {
 
-        Optional<UserCurrentSession> userSessionOpt = userLoginRepo.findByToken(key);
+        userAuthentication.authenticateUserLoginSession(token);
 
-        if(userSessionOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-        Optional<User> savedUserOpt = userRepo.findById(user.getUserid());
-
-        if(savedUserOpt.isEmpty()){
-            throw new UserException("User does not exists with user id : "+user.getUserid());
-        }
+        userAuthentication.authenticateUser(user.getUserid());
 
         return userRepo.save(user);
 
+    }
 
+    @Override
+    public User viewUser(Integer uId, String token,String check) throws LoginException, UserException {
+
+        checkUser(check,token);
+
+        return userAuthentication.authenticateUser(uId);
 
     }
 
     @Override
-    public User viewUser(Integer uId, String key,String check) throws LoginException, UserException {
+    public User deleteUser(Integer uId, String token) throws UserException, LoginException {
 
-        if(checkUser(check,key)==false){
-            throw new LoginException("Invalid url or please log in");
-        }
+        adminAuthentication.authenticateAdminLoginSession(token);
 
-        Optional<User> userOpt = userRepo.findById(uId);
-
-        if(userOpt.isEmpty()){
-            throw new UserException("User does not exists with user id : "+uId);
-        }
-
-        return userOpt.get();
-
-
-
-    }
-
-    @Override
-    public User deleteUser(Integer uId, String key) throws UserException, LoginException {
-
-        Optional<AdminCurrentSession> adminSessionOpt = adminLoginRepo.findByToken(key);
-
-        if(adminSessionOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-        Optional<User> userOpt = userRepo.findById(uId);
-
-        if(userOpt.isEmpty()){
-            throw new UserException("user does not exists with user id : "+uId);
-        }
+        User user = userAuthentication.authenticateUser(uId);
 
         Optional<UserCurrentSession> userSessionOpt = userLoginRepo.findById(uId);
 
@@ -102,8 +76,6 @@ public class UserServiceImpl implements UserService{
             userLoginRepo.delete(userCurrentSession);
         }
 
-        User user = userOpt.get();
-
         userRepo.delete(user);
 
         return user;
@@ -111,13 +83,9 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public List<User> viewAllUser(String key) throws UserException, LoginException {
+    public List<User> viewAllUser(String token) throws UserException, LoginException {
 
-        Optional<AdminCurrentSession> adminSessionOpt = adminLoginRepo.findByToken(key);
-
-        if(adminSessionOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+        adminAuthentication.authenticateAdminLoginSession(token);
 
         List<User> users = userRepo.findAll();
 
@@ -129,30 +97,15 @@ public class UserServiceImpl implements UserService{
 
     }
 
-    private boolean checkUser(String check, String key){
+    public void checkUser(String check, String token)throws LoginException {
 
         if(check.equals("admin")){
-            Optional<AdminCurrentSession> adminSessionOpt = adminLoginRepo.findByToken(key);
-            if (adminSessionOpt.isEmpty()){
-                return false;
-            }
-            else{
-                return true;
-            }
+            adminAuthentication.authenticateAdminLoginSession(token);
         }
         else if(check.equals("user")){
-            Optional<UserCurrentSession> userSessionOpt = userLoginRepo.findByToken(key);
-            if (userSessionOpt.isEmpty()){
-                return false;
-            }
-            else{
-                return true;
-            }
+            userAuthentication.authenticateUserLoginSession(token);
         }
-        else{
-            return false;
-        }
-
+        else throw new RuntimeException("Invalid url");
 
     }
 

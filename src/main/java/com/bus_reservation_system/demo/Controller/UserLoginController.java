@@ -1,8 +1,7 @@
 package com.bus_reservation_system.demo.Controller;
 
 import com.bus_reservation_system.demo.Models.Login;
-import com.bus_reservation_system.demo.Service.LoginService.AdminLoginService;
-import com.bus_reservation_system.demo.Service.LoginService.UserLoginService;
+import com.bus_reservation_system.demo.Service.LoginService.User.UserLoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +14,6 @@ public class UserLoginController {
 
     @Autowired
     UserLoginService userLoginService;
-
 
     @PostMapping("/user/login")
     public ResponseEntity<String> loginAdminHandler(@Valid @RequestBody Login login){

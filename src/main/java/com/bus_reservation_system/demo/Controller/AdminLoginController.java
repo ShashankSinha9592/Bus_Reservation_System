@@ -2,7 +2,7 @@ package com.bus_reservation_system.demo.Controller;
 
 
 import com.bus_reservation_system.demo.Models.Login;
-import com.bus_reservation_system.demo.Service.LoginService.AdminLoginService;
+import com.bus_reservation_system.demo.Service.LoginService.Admin.AdminLoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

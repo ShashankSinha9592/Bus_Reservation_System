@@ -3,6 +3,9 @@ package com.bus_reservation_system.demo.Service.Feedback;
 import com.bus_reservation_system.demo.ExceptionHandler.*;
 import com.bus_reservation_system.demo.Models.*;
 import com.bus_reservation_system.demo.Repository.*;
+import com.bus_reservation_system.demo.Service.Bus.BusService;
+import com.bus_reservation_system.demo.Service.LoginService.Admin.AdminAuthentication;
+import com.bus_reservation_system.demo.Service.LoginService.User.UserAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,61 +16,54 @@ import java.util.Optional;
 public class FeedbackServiceImpl implements FeedbackService{
 
     @Autowired
+    BusService busService;
+
+    @Autowired
+    UserAuthentication userAuthentication;
+
+    @Autowired
+    AdminAuthentication adminAuthentication;
+
+    @Autowired
     FeedbackRepo feedbackRepo;
 
     @Autowired
     UserRepo userRepo;
 
     @Autowired
-    UserLoginRepo userLoginRepo;
-
-    @Autowired
     BusRepo busRepo;
 
-    @Autowired
-    AdminRepo adminRepo;
-
-    @Autowired
-    AdminLoginRepo adminLoginRepo;
-
     @Override
-    public Feedback addFeedBack(Feedback feedback, String key, Integer busId) throws LoginException, FeedbackException , BusException {
+    public Feedback addFeedBack(Feedback feedback, String token, Integer busId) throws LoginException, FeedbackException , BusException {
 
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
+        UserCurrentSession userCurrentSession = userAuthentication.authenticateUserLoginSession(token);
 
-        if(sessionOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-        Optional<Bus> busOpt = busRepo.findById(busId);
+        Bus bus = busService.authenticateBus(busId);
 
-        if(busOpt.isEmpty()){
-            throw new BusException("Bus does not exists with bus id : "+busId);
-        }
-        Bus bus = busOpt.get();
-
-        Optional<User> userOpt = userRepo.findById(sessionOpt.get().getUserId());
-
-        User user = userOpt.get();
+        User user = userAuthentication.authenticateUser(userCurrentSession.getUserId());
 
         feedback.setBus(bus);
+
         feedback.setUser(user);
+
+        bus.getFeedbacks().add(feedback);
+
+        user.getFeedbacks().add(feedback);
+
         userRepo.save(user);
+
         busRepo.save(bus);
+
         return feedbackRepo.save(feedback);
 
     }
 
     @Override
-    public Feedback updateFeedback(Feedback feedback, String key) throws FeedbackException, LoginException {
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
+    public Feedback updateFeedback(Feedback feedback, String token) throws FeedbackException, LoginException {
 
-        if(sessionOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+        UserCurrentSession userCurrentSession = userAuthentication.authenticateUserLoginSession(token);
 
-        Optional<User> userOpt = userRepo.findById(sessionOpt.get().getUserId());
-
-        User user = userOpt.get();
+        User user = userAuthentication.authenticateUser(userCurrentSession.getUserId());
 
         for (Feedback feedback1 :user.getFeedbacks()){
             if(feedback1.getFeedbackId()==feedback.getFeedbackId()){
@@ -81,30 +77,17 @@ public class FeedbackServiceImpl implements FeedbackService{
     }
 
     @Override
-    public Feedback viewFeedbackById(Integer fId, String key) throws FeedbackException, LoginException {
-           Optional<AdminCurrentSession> adminOpt =  adminLoginRepo.findByToken(key);
+    public Feedback viewFeedbackById(Integer fId, String token) throws FeedbackException, LoginException {
+           adminAuthentication.authenticateAdminLoginSession(token);
 
-           if (adminOpt.isEmpty()){
-               throw new LoginException("Please login first");
-           }
-
-           Optional<Feedback> feedbackOpt = feedbackRepo.findById(fId);
-
-           if(feedbackOpt.isEmpty()){
-               throw new FeedbackException("Feedback does not exists with feedback id : "+fId);
-           }
-           return feedbackOpt.get();
+           return getFeedBack(fId);
 
     }
 
     @Override
-    public List<Feedback> viewAllFeedback(String key) throws FeedbackException, LoginException {
+    public List<Feedback> viewAllFeedback(String token) throws FeedbackException, LoginException {
 
-        Optional<AdminCurrentSession> adminOpt =  adminLoginRepo.findByToken(key);
-
-        if (adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+        adminAuthentication.authenticateAdminLoginSession(token);
 
         List<Feedback> feedbacks = feedbackRepo.findAll();
 
@@ -117,30 +100,17 @@ public class FeedbackServiceImpl implements FeedbackService{
     }
 
     @Override
-    public List<Feedback> viewAllFeedbacksOfBus(Integer busId, String key, String check) throws BusException, LoginException, FeedbackException {
+    public List<Feedback> viewAllFeedbacksOfBus(Integer busId, String token, String check) throws BusException, LoginException, FeedbackException {
 
-        Optional<AdminCurrentSession> adminOpt;
-        Optional<UserCurrentSession> userOpt;
+
         if(check.equals("admin")) {
-            adminOpt = adminLoginRepo.findByToken(key);
-            if(adminOpt.isEmpty()){
-                throw new AdminException("Please login first");
-            }
+            adminAuthentication.authenticateAdminLoginSession(token);
         }
         if(check.equals("user")){
-            userOpt = userLoginRepo.findByToken(key);
-            if(userOpt.isEmpty()){
-                throw new UserException("Please login first");
-            }
+           userAuthentication.authenticateUserLoginSession(token);
         }
 
-        Optional<Bus> busOpt = busRepo.findById(busId);
-
-        if(busOpt.isEmpty()){
-            throw new BusException("Bus does not exists with bus id : "+busId);
-        }
-
-        Bus bus = busOpt.get();
+        Bus bus = busService.authenticateBus(busId);
 
         List<Feedback> feedbacks = bus.getFeedbacks();
 
@@ -149,6 +119,18 @@ public class FeedbackServiceImpl implements FeedbackService{
         }
 
         return feedbacks;
+
+    }
+
+    private Feedback getFeedBack(Integer fId)throws FeedbackException{
+
+        Optional<Feedback> feedbackOpt = feedbackRepo.findById(fId);
+
+        if(feedbackOpt.isEmpty()){
+            throw new FeedbackException("Feedback does not exists with feedback id : "+fId);
+        }
+
+        return feedbackOpt.get();
 
     }
 }

@@ -2,16 +2,15 @@ package com.bus_reservation_system.demo.Service.Bus;
 
 import com.bus_reservation_system.demo.DTO.BusDTO;
 import com.bus_reservation_system.demo.DTO.RouteDTO;
-import com.bus_reservation_system.demo.ExceptionHandler.AdminException;
-import com.bus_reservation_system.demo.ExceptionHandler.BusException;
-import com.bus_reservation_system.demo.ExceptionHandler.LoginException;
-import com.bus_reservation_system.demo.ExceptionHandler.UserException;
+import com.bus_reservation_system.demo.ExceptionHandler.*;
 import com.bus_reservation_system.demo.Models.AdminCurrentSession;
 import com.bus_reservation_system.demo.Models.Bus;
-import com.bus_reservation_system.demo.Models.UserCurrentSession;
-import com.bus_reservation_system.demo.Repository.AdminLoginRepo;
+import com.bus_reservation_system.demo.Models.Route;
 import com.bus_reservation_system.demo.Repository.BusRepo;
-import com.bus_reservation_system.demo.Repository.UserLoginRepo;
+import com.bus_reservation_system.demo.Repository.RouteRepo;
+import com.bus_reservation_system.demo.Service.LoginService.Admin.AdminAuthentication;
+import com.bus_reservation_system.demo.Service.LoginService.User.UserAuthentication;
+import com.bus_reservation_system.demo.Service.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,66 +22,161 @@ import java.util.Optional;
 public class BusServiceImpl implements BusService{
 
     @Autowired
+    AdminAuthentication adminAuthentication;
+
+    @Autowired
+    UserAuthentication userAuthentication;
+
+    @Autowired
     private BusRepo busRepo;
 
     @Autowired
-    private AdminLoginRepo adminLoginRepo;
+    UserService userService;
 
     @Autowired
-    private UserLoginRepo userLoginRepo;
-    @Override
-    public Bus addBus(Bus bus, String key) throws BusException, LoginException {
-        Optional<AdminCurrentSession> opt = adminLoginRepo.findByToken(key);
+    RouteRepo routeRepo;
 
-        if(opt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+    @Override
+    public Bus addBus(Bus bus, String token) throws BusException, LoginException {
+
+        adminAuthentication.authenticateAdminLoginSession(token);
+
         return busRepo.save(bus);
 
     }
 
     @Override
-    public Bus updateBus(Bus bus, String key) throws BusException, LoginException {
-        Optional<AdminCurrentSession> opt = adminLoginRepo.findByToken(key);
+    public Bus updateBus(Bus bus, String token) throws BusException, LoginException {
 
-        if(opt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-        Optional<Bus> opt2 = busRepo.findById(bus.getBusId());
+        AdminCurrentSession adminCurrentSession = adminAuthentication.authenticateAdminLoginSession(token);
 
-        if(opt2.isEmpty()){
-            throw new BusException("Bus does not exists with bus id : "+bus.getBusId());
-        }
+        authenticateBus(bus.getBusId());
+
         return busRepo.save(bus);
 
 
     }
 
     @Override
-    public BusDTO viewBus(Integer busId, String key,String check) throws BusException, LoginException {
+    public BusDTO viewBus(Integer busId, String token,String check) throws BusException, LoginException {
 
-        Optional<AdminCurrentSession> adminOpt;
-        Optional<UserCurrentSession> userOpt;
-        if(check.equals("admin")) {
-            adminOpt = adminLoginRepo.findByToken(key);
-            if(adminOpt.isEmpty()){
-                throw new AdminException("Please login first");
-            }
+        userService.checkUser(check,token);
+
+        Bus bus = authenticateBus(busId);
+
+        return getBusDTO(bus);
+
+
+    }
+
+    @Override
+    public Bus deleteBus(Integer busId, String token) throws BusException, LoginException {
+
+        adminAuthentication.authenticateAdminLoginSession(token);
+
+        Bus bus = authenticateBus(busId);
+
+        busRepo.delete(bus);
+
+        return bus;
+
+    }
+
+    @Override
+    public List<BusDTO> viewBusByType(String busType, String token, String check) throws BusException, LoginException {
+
+        userService.checkUser(check,token);
+
+        List<Bus> buses = busRepo.findByBusType(busType);
+
+        if(buses.isEmpty()){
+            throw new BusException("No bus found with bus type : "+busType);
         }
-        if(check.equals("user")){
-            userOpt = userLoginRepo.findByToken(key);
-            if(userOpt.isEmpty()){
-                throw new UserException("Please login first");
-            }
+
+        List<BusDTO> busDTOs = new ArrayList<>();
+
+        for(Bus bus : buses){
+
+            BusDTO busDTO = getBusDTO(bus);
+
+            busDTOs.add(busDTO);
+
         }
+        return busDTOs;
+
+    }
+
+    @Override
+    public List<BusDTO> viewAllBus(String token) throws BusException, LoginException {
+
+        adminAuthentication.authenticateAdminLoginSession(token);
+
+
+        List<Bus> buses = busRepo.findAll();
+
+        if(buses.isEmpty()){
+            throw new BusException("No bus found");
+        }
+
+        List<BusDTO> busDTOs = new ArrayList<>();
+        for(Bus bus : buses){
+            BusDTO busDTO = getBusDTO(bus);
+            busDTOs.add(busDTO);
+
+        }
+        return busDTOs;
+
+    }
+
+    @Override
+    public List<BusDTO> viewBusesByRoute(String startRoute, String endRoute, String token , String check) throws BusException, RouteException, LoginException {
+
+        userService.checkUser(check,token);
+
+        Optional<Route> routeOpt = routeRepo.findByRoute(startRoute,endRoute);
+
+        if(routeOpt.isEmpty()){
+            throw new RouteException("Route does not exists from the given route detail");
+        }
+
+        Route route = routeOpt.get();
+
+        List<Bus> buses = route.getBuses();
+
+        if(buses.isEmpty()){
+            throw new BusException("Bus not found in this route");
+        }
+
+        List<BusDTO> busDTOs = new ArrayList<>();
+
+        for(Bus bus:buses){
+            BusDTO busDTO = getBusDTO(bus);
+
+            busDTOs.add(busDTO);
+        }
+
+        return busDTOs;
+
+    }
+
+
+    public Bus authenticateBus(Integer busId)throws BusException{
+
         Optional<Bus> busOpt = busRepo.findById(busId);
 
         if(busOpt.isEmpty()){
             throw new BusException("Bus does not exists with bus id : "+busId);
         }
-        Bus bus = busOpt.get();
+
+        return busOpt.get();
+
+    }
+
+
+    private BusDTO getBusDTO(Bus bus){
 
         BusDTO busDTO = new BusDTO();
+
         busDTO.setBusName(bus.getBusName());
         busDTO.setBusType(bus.getBusType());
         busDTO.setDriver(bus.getDriver());
@@ -101,117 +195,7 @@ public class BusServiceImpl implements BusService{
 
         return busDTO;
 
-
     }
 
-    @Override
-    public Bus deleteBus(Integer busId, String key) throws BusException, LoginException {
-        Optional<AdminCurrentSession> opt = adminLoginRepo.findByToken(key);
 
-        if(opt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-        Optional<Bus> busOpt = busRepo.findById(busId);
-
-        if(busOpt.isEmpty()){
-            throw new BusException("Bus does not exists with bus id : "+busId);
-        }
-        Bus bus = busOpt.get();
-
-        busRepo.delete(bus);
-        return bus;
-
-    }
-
-    @Override
-    public List<BusDTO> viewBusByType(String busType, String key, String check) throws BusException, LoginException {
-
-        Optional<AdminCurrentSession> adminOpt;
-        Optional<UserCurrentSession> userOpt;
-        if(check.equals("admin")) {
-            adminOpt = adminLoginRepo.findByToken(key);
-            if(adminOpt.isEmpty()){
-                throw new AdminException("Please login first");
-            }
-        }
-        if(check.equals("user")){
-            userOpt = userLoginRepo.findByToken(key);
-            if(userOpt.isEmpty()){
-                throw new UserException("Please login first");
-            }
-        }
-
-        List<Bus> buses = busRepo.findByBusType(busType);
-
-        if(buses.isEmpty()){
-            throw new BusException("No bus found with bus type : "+busType);
-        }
-
-        List<BusDTO> busDTOs = new ArrayList<>();
-        for(Bus bus : buses){
-            BusDTO busDTO = new BusDTO();
-            busDTO.setBusName(bus.getBusName());
-            busDTO.setBusType(bus.getBusType());
-            busDTO.setDriver(bus.getDriver());
-            busDTO.setBusId(bus.getBusId());
-            busDTO.setArrivalTime(bus.getArrivalTime());
-            busDTO.setDepartureTime(bus.getDepartureTime());
-            busDTO.setAvailableSeats(bus.getAvailableSeats());
-            busDTO.setTotalSeats(bus.getTotalSeats());
-
-            RouteDTO routeDTO = new RouteDTO();
-            routeDTO.setRouteFrom(bus.getRoute().getRouteFrom());
-            routeDTO.setRouteTo(bus.getRoute().getRouteTo());
-            routeDTO.setDistance(bus.getRoute().getDistance());
-
-            busDTO.setRouteDTO(routeDTO);
-            busDTOs.add(busDTO);
-
-        }
-        return busDTOs;
-
-    }
-
-    @Override
-    public List<BusDTO> viewAllBus(String key) throws BusException, LoginException {
-        Optional<AdminCurrentSession> opt = adminLoginRepo.findByToken(key);
-
-        if(opt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-
-        List<Bus> buses = busRepo.findAll();
-
-        if(buses.isEmpty()){
-            throw new BusException("No bus found");
-        }
-
-        List<BusDTO> busDTOs = new ArrayList<>();
-        for(Bus bus : buses){
-            BusDTO busDTO = new BusDTO();
-            busDTO.setBusName(bus.getBusName());
-            busDTO.setBusType(bus.getBusType());
-            busDTO.setDriver(bus.getDriver());
-            busDTO.setBusId(bus.getBusId());
-            busDTO.setArrivalTime(bus.getArrivalTime());
-            busDTO.setDepartureTime(bus.getDepartureTime());
-            busDTO.setAvailableSeats(bus.getAvailableSeats());
-            busDTO.setTotalSeats(bus.getTotalSeats());
-
-            RouteDTO routeDTO = new RouteDTO();
-            routeDTO.setRouteFrom(bus.getRoute().getRouteFrom());
-            routeDTO.setRouteTo(bus.getRoute().getRouteTo());
-            routeDTO.setDistance(bus.getRoute().getDistance());
-
-            busDTO.setRouteDTO(routeDTO);
-            busDTOs.add(busDTO);
-
-        }
-        return busDTOs;
-
-
-
-    }
 }

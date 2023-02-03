@@ -4,11 +4,12 @@ import com.bus_reservation_system.demo.DTO.RouteDTO;
 import com.bus_reservation_system.demo.ExceptionHandler.BusException;
 import com.bus_reservation_system.demo.ExceptionHandler.LoginException;
 import com.bus_reservation_system.demo.ExceptionHandler.RouteException;
-import com.bus_reservation_system.demo.Models.AdminCurrentSession;
 import com.bus_reservation_system.demo.Models.Bus;
 import com.bus_reservation_system.demo.Models.Route;
-import com.bus_reservation_system.demo.Models.UserCurrentSession;
 import com.bus_reservation_system.demo.Repository.*;
+import com.bus_reservation_system.demo.Service.Bus.BusService;
+import com.bus_reservation_system.demo.Service.LoginService.Admin.AdminAuthentication;
+import com.bus_reservation_system.demo.Service.LoginService.User.UserAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,125 +21,72 @@ import java.util.Optional;
 public class RouteServiceImpl implements RouteService{
 
     @Autowired
-    ReservationRepo reservationRepo;
+    BusService busService;
 
     @Autowired
-    UserLoginRepo userLoginRepo;
+    UserAuthentication userAuthentication;
 
     @Autowired
-    UserRepo userRepo;
+    AdminAuthentication adminAuthentication;
 
     @Autowired
     BusRepo busRepo;
 
     @Autowired
-    AdminLoginRepo adminLoginRepo;
-
-    @Autowired
     RouteRepo routeRepo;
 
     @Override
-    public RouteDTO addRoute(Route route, String key) throws RouteException, LoginException {
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
-
-        if(adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+    public RouteDTO addRoute(Route route, String token) throws RouteException, LoginException {
+        adminAuthentication.authenticateAdminLoginSession(token);
 
         Route savedRoute = routeRepo.save(route);
 
-        RouteDTO routeDTO = new RouteDTO();
-
-        routeDTO.setRouteFrom(savedRoute.getRouteFrom());
-        routeDTO.setDistance(savedRoute.getDistance());
-        routeDTO.setRouteTo(savedRoute.getRouteTo());
-
-        return routeDTO;
+        return getRouteDto(savedRoute);
 
     }
 
     @Override
-    public Route updateRoute(Route route, String key) throws RouteException, LoginException {
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
+    public Route updateRoute(Route route, String token) throws RouteException, LoginException {
+        adminAuthentication.authenticateAdminLoginSession(token);
 
-        if(adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+        authenticateRoute(route.getRouteId());
 
-        Optional<Route> routeOpt = routeRepo.findById(route.getRouteId());
-
-        if (routeOpt.isEmpty()){
-            throw new RouteException("Route does not exists with route id : "+route.getRouteId());
-        }
-
-        Route savedRoute = routeRepo.save(route);
-
-        return savedRoute;
+        return routeRepo.save(route);
 
     }
 
     @Override
-    public RouteDTO viewRoute(Integer routeId, String key) throws RouteException, LoginException {
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
+    public RouteDTO viewRoute(Integer routeId, String token) throws RouteException, LoginException {
+        adminAuthentication.authenticateAdminLoginSession(token);
 
-        if(adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+        Route savedRoute = authenticateRoute(routeId);
 
-        Optional<Route> routeOpt = routeRepo.findById(routeId);
-        if(routeOpt.isEmpty()){
-            throw new RouteException("Route does exists with route id : "+routeId);
-        }
-        Route savedRoute = routeOpt.get();
-        RouteDTO routeDTO = new RouteDTO();
-
-        routeDTO.setRouteFrom(savedRoute.getRouteFrom());
-        routeDTO.setDistance(savedRoute.getDistance());
-        routeDTO.setRouteTo(savedRoute.getRouteTo());
-
-        return routeDTO;
+        return getRouteDto(savedRoute);
 
     }
 
     @Override
-    public Route deleteRoute(Integer routeId, String key) throws RouteException, LoginException {
+    public Route deleteRoute(Integer routeId, String token) throws RouteException, LoginException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
+        adminAuthentication.authenticateAdminLoginSession(token);
 
-        if(adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-        Optional<Route> routeOpt = routeRepo.findById(routeId);
-
-        if (routeOpt.isEmpty()){
-            throw new RouteException("Route does not exists with route id : "+routeId);
-        }
-
-        Route route = routeOpt.get();
+        Route route = authenticateRoute(routeId);
 
         routeRepo.delete(route);
+
         return route;
 
 
     }
 
     @Override
-    public List<RouteDTO> viewAllRoute(String key, String check) throws LoginException, RouteException {
+    public List<RouteDTO> viewAllRoute(String token, String check) throws LoginException, RouteException {
 
         if(check.equals("admin")) {
-            Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
-
-            if (adminOpt.isEmpty()) {
-                throw new LoginException("Please login first");
-            }
+            adminAuthentication.authenticateAdminLoginSession(token);
         }
         if(check.equals("user")){
-            Optional<UserCurrentSession> userOpt = userLoginRepo.findByToken(key);
-
-            if (userOpt.isEmpty()) {
-                throw new LoginException("Please login first");
-            }
+            userAuthentication.authenticateUserLoginSession(token);
         }
 
         List<Route> routes = routeRepo.findAll();
@@ -150,10 +98,8 @@ public class RouteServiceImpl implements RouteService{
         List<RouteDTO> routeDtos = new ArrayList<>();
 
         for(Route route : routes){
-            RouteDTO dto = new RouteDTO();
-            dto.setDistance(route.getDistance());
-            dto.setRouteTo(route.getRouteTo());
-            dto.setRouteFrom(route.getRouteFrom());
+            RouteDTO dto = getRouteDto(route);
+
             routeDtos.add(dto);
         }
 
@@ -162,35 +108,46 @@ public class RouteServiceImpl implements RouteService{
     }
 
     @Override
-    public Route assignRouteToBus(Integer busId, Integer routeId, String key) throws LoginException, BusException, RouteException {
+    public Route assignRouteToBus(Integer busId, Integer routeId, String token) throws LoginException, BusException, RouteException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
+        adminAuthentication.authenticateAdminLoginSession(token);
 
-        if(adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+        Bus bus = busService.authenticateBus(busId);
 
-        Optional<Bus> busOpt = busRepo.findById(busId);
-
-        if(busOpt.isEmpty()){
-            throw new BusException("Bus does not exists with bus id : "+busId);
-        }
-
-        Optional<Route> routeOpt = routeRepo.findById(routeId);
-
-        if(routeOpt.isEmpty()){
-            throw new RouteException("Route does not exists with route id : "+routeId);
-        }
-
-        Bus bus = busOpt.get();
-        Route route = routeOpt.get();
+        Route route = authenticateRoute(routeId);
 
         route.getBuses().add(bus);
-        bus.setRoute(route);
-        busRepo.save(bus);
-        routeRepo.save(route);
 
-        return route;
+        bus.setRoute(route);
+
+        busRepo.save(bus);
+
+        return routeRepo.save(route);
 
     }
+
+    private Route authenticateRoute(Integer rId) throws RouteException{
+
+        Optional<Route> routeOpt = routeRepo.findById(rId);
+
+        if (routeOpt.isEmpty()){
+            throw new RouteException("Route does not exists with route id : "+rId);
+        }
+
+        return routeOpt.get();
+
+    }
+
+    private RouteDTO getRouteDto(Route route){
+
+        RouteDTO routeDTO = new RouteDTO();
+
+        routeDTO.setRouteFrom(route.getRouteFrom());
+        routeDTO.setDistance(route.getDistance());
+        routeDTO.setRouteTo(route.getRouteTo());
+
+        return routeDTO;
+
+    }
+
 }

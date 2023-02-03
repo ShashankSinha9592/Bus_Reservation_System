@@ -19,4 +19,5 @@ public interface UserService {
 
     public List<User> viewAllUser(String key) throws UserException, LoginException;
 
+    public void checkUser(String check, String token)throws LoginException;
 }

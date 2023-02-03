@@ -3,9 +3,11 @@ package com.bus_reservation_system.demo.Service.Reservation;
 import com.bus_reservation_system.demo.ExceptionHandler.BusException;
 import com.bus_reservation_system.demo.ExceptionHandler.LoginException;
 import com.bus_reservation_system.demo.ExceptionHandler.ReservationException;
-import com.bus_reservation_system.demo.ExceptionHandler.UserException;
 import com.bus_reservation_system.demo.Models.*;
 import com.bus_reservation_system.demo.Repository.*;
+import com.bus_reservation_system.demo.Service.Bus.BusService;
+import com.bus_reservation_system.demo.Service.LoginService.Admin.AdminAuthentication;
+import com.bus_reservation_system.demo.Service.LoginService.User.UserAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,44 +19,34 @@ import java.util.Optional;
 public class ReservationServiceImpl implements ReservationService{
 
     @Autowired
-    ReservationRepo reservationRepo;
+    UserAuthentication userAuthentication;
 
     @Autowired
-    UserLoginRepo userLoginRepo;
+    BusService busService;
+
+    @Autowired
+    ReservationRepo reservationRepo;
 
     @Autowired
     UserRepo userRepo;
 
     @Autowired
-    BusRepo busRepo;
-
-    @Autowired
-    AdminLoginRepo adminLoginRepo;
+    AdminAuthentication adminAuthentication;
 
 
     @Override
-    public Reservation addReservation(Reservation reservation, String key, Integer busId) throws LoginException, ReservationException {
+    public Reservation addReservation(Reservation reservation, String token, Integer busId) throws LoginException, ReservationException {
 
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
+        UserCurrentSession userCurrentSession = userAuthentication.authenticateUserLoginSession(token);
 
-        if(sessionOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-        Optional<Bus> busOpt = busRepo.findById(busId);
-
-        if(busOpt.isEmpty()){
-            throw new BusException("Bus does not exists with bus id : "+busId);
-        }
-        Bus bus = busOpt.get();
+        Bus bus = busService.authenticateBus(busId);
 
         if(bus.getAvailableSeats()==0){
             throw new BusException("Seats not available");
         }
 
-        Optional<User> userOpt = userRepo.findById(sessionOpt.get().getUserId());
+        User user = userAuthentication.authenticateUser(userCurrentSession.getUserId());
 
-        User user = userOpt.get();
         bus.setAvailableSeats(bus.getAvailableSeats()-1);
         reservation.setUser(user);
         reservation.setBus(bus);
@@ -67,36 +59,22 @@ public class ReservationServiceImpl implements ReservationService{
     }
 
     @Override
-    public Reservation updateReservation(Reservation reservation, String key) throws LoginException, ReservationException {
+    public Reservation updateReservation(Reservation reservation, String token) throws LoginException, ReservationException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
+        adminAuthentication.authenticateAdminLoginSession(token);
 
-        if(adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-        Optional<Reservation> reservationOpt = reservationRepo.findById(reservation.getReservationId());
-
-        if(reservationOpt.isEmpty()){
-            throw new ReservationException("Reservation does not exists with reservation id : "+reservation.getReservationId());
-        }
+        authenticateReservation(reservation.getReservationId());
 
         return reservationRepo.save(reservation);
 
     }
 
     @Override
-    public Reservation cancelReservation(Integer rId, String key) throws ReservationException, LoginException {
+    public Reservation cancelReservation(Integer rId, String token) throws ReservationException, LoginException {
 
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
+        UserCurrentSession userCurrentSession = userAuthentication.authenticateUserLoginSession(token);
 
-        if(sessionOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-        Optional<User> userOpt = userRepo.findById(sessionOpt.get().getUserId());
-
-        User user = userOpt.get();
+        User user = userAuthentication.authenticateUser(userCurrentSession.getUserId());
 
         for(Reservation reservation:user.getReservations()){
             if(reservation.getReservationId()==rId){
@@ -109,34 +87,18 @@ public class ReservationServiceImpl implements ReservationService{
     }
 
     @Override
-    public Reservation viewReservationById(Integer rId, String key) throws ReservationException, LoginException {
+    public Reservation viewReservationById(Integer rId, String token) throws ReservationException, LoginException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
+        adminAuthentication.authenticateAdminLoginSession(token);
 
-        if(adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-        Optional<Reservation> reservationOpt = reservationRepo.findById(rId);
-
-        if(reservationOpt.isEmpty()){
-            throw new ReservationException("Reservation does not exists with reservationId : "+rId);
-        }
-
-        Reservation reservation = reservationOpt.get();
-
-        return reservation;
+        return authenticateReservation(rId);
 
     }
 
     @Override
-    public List<Reservation> viewReservationByDate(LocalDate date, String key) throws ReservationException, LoginException {
+    public List<Reservation> viewReservationByDate(LocalDate date, String token) throws ReservationException, LoginException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
-
-        if(adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+        adminAuthentication.authenticateAdminLoginSession(token);
 
         List<Reservation> reservations = reservationRepo.findByReservationDate(date);
 
@@ -149,13 +111,9 @@ public class ReservationServiceImpl implements ReservationService{
     }
 
     @Override
-    public List<Reservation> viewAllReservation(String key) throws LoginException, ReservationException {
+    public List<Reservation> viewAllReservation(String token) throws LoginException, ReservationException {
 
-        Optional<AdminCurrentSession> adminOpt = adminLoginRepo.findByToken(key);
-
-        if(adminOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
+        adminAuthentication.authenticateAdminLoginSession(token);
 
         List<Reservation> reservations = reservationRepo.findAll();
 
@@ -168,22 +126,28 @@ public class ReservationServiceImpl implements ReservationService{
     }
 
     @Override
-    public List<Reservation> viewAllReservationForUser(String key) throws ReservationException, LoginException {
+    public List<Reservation> viewAllReservationForUser(String token) throws ReservationException, LoginException {
 
-        Optional<UserCurrentSession> sessionOpt = userLoginRepo.findByToken(key);
+        UserCurrentSession userCurrentSession = userAuthentication.authenticateUserLoginSession(token);
 
-        if(sessionOpt.isEmpty()){
-            throw new LoginException("Please login first");
-        }
-
-        Optional<User> userOpt = userRepo.findById(sessionOpt.get().getUserId());
-
-        User user = userOpt.get();
+        User user = userAuthentication.authenticateUser(userCurrentSession.getUserId());
 
         if(user.getReservations().isEmpty()){
             throw new ReservationException("No reservations found");
         }
         return user.getReservations();
+
+    }
+
+    private Reservation authenticateReservation(Integer rId) throws ReservationException{
+
+        Optional<Reservation> reservationOpt = reservationRepo.findById(rId);
+
+        if(reservationOpt.isEmpty()){
+            throw new ReservationException("Reservation does not exists with reservationId : "+rId);
+        }
+
+        return reservationOpt.get();
 
     }
 }

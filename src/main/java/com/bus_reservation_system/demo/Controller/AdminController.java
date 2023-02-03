@@ -54,7 +54,7 @@ public class AdminController {
             savedAdmin =  adminService.registerAdmin(admin);
 
         }
-        System.out.println("hello admin contoller");
+
         return new ResponseEntity<>(savedAdmin, HttpStatus.CREATED);
 
     }
@@ -262,6 +262,14 @@ public class AdminController {
 
     }
 
+    @GetMapping("/viewbusbyroute/{startRoute}/{endRoute}/{token}")
+    public ResponseEntity<List<BusDTO>> getBusByRoute(@PathVariable String startRoute, @PathVariable String endRoute, @PathVariable String token){
+
+        List<BusDTO> buses = busService.viewBusesByRoute(startRoute,endRoute,token,"admin");
+
+        return new ResponseEntity<>(buses,HttpStatus.OK);
+
+    }
 
 
 

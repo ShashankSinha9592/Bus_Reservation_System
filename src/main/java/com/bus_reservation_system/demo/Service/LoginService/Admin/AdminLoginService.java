@@ -1,4 +1,4 @@
-package com.bus_reservation_system.demo.Service.LoginService;
+package com.bus_reservation_system.demo.Service.LoginService.Admin;
 
 import com.bus_reservation_system.demo.ExceptionHandler.LoginException;
 import com.bus_reservation_system.demo.Models.Login;
