@@ -8,7 +8,7 @@
 
 <h4>Admin</h4>
 
-{
+{<br>
 "adminId": integer , // Optional for post request  but important for put request<br>
 "email": "string",<br>
 "password": "string"<br>
