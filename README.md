@@ -9,9 +9,9 @@
 <h4>Admin</h4>
 
 {
-"adminId": integer , // Optional for post request  but important for put request<br><br>
-"email": "string",
-"password": "string"
+"adminId": integer , // Optional for post request  but important for put request<br>
+"email": "string",<br>
+"password": "string"<br>
 }
 
 <h4>User</h4>
