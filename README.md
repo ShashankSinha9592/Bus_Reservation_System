@@ -98,21 +98,25 @@ resulting api example : http://localhost:8080/admin/2/mytoken
 <h3>In the image url =  <b> /user/login which means http://localhost:8080/user/login and this goes for all the urls you will find in the image</b></h3>
 <h3>Admin Login Controller</h3>
 
-<img src = "src/main/resources/ImageResource/AdminLogin.png">
+
+![AdminLogin](https://user-images.githubusercontent.com/102857782/219963039-fd2f7b7a-19d6-4094-add2-b512cad1e0e4.png)
 
 
 
 <h3>User Login Api</h3>
 
-<img src = "src/main/resources/ImageResource/UserLogin.png">
+![UserLogin](https://user-images.githubusercontent.com/102857782/219963061-fce40f88-1626-426b-b0f9-b1168b3d6027.png)
+
 
 
 <h3>Admin Controller</h3>
-<img src = "src/main/resources/ImageResource/AdminContoller.png">
+
+![AdminContoller](https://user-images.githubusercontent.com/102857782/219963076-c6864e2b-4bc1-4d7b-bc92-a23e12e56241.png)
 
 <h3>User Controller</h3>
 
-<img src = "src/main/resources/ImageResource/UserController.png">
+![UserController](https://user-images.githubusercontent.com/102857782/219963083-d4ad07b4-518b-42c7-8138-78e64c33a858.png)
+
 
 
 <h3>
