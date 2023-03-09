@@ -42,6 +42,8 @@ public class AdminController {
     @PostMapping("/registerbus")
     public ResponseEntity<Bus> registerBusHandler(@Valid @RequestBody Bus bus){
 
+        bus.setAvailableSeats(bus.getTotalSeats());
+
         Bus savedBus = busService.addBus(bus);
 
         return new ResponseEntity<>(savedBus,HttpStatus.CREATED);
