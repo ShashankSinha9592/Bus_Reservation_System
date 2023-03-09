@@ -1,19 +1,19 @@
 package com.bus_reservation_system.demo.Models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
-import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Entity
 public class Route {
 
@@ -34,6 +34,6 @@ public class Route {
 
     @JsonIgnore
     @OneToMany(mappedBy = "route")
-    private List<Bus> buses;
+    private List<Bus> buses = new ArrayList<>();
 
 }

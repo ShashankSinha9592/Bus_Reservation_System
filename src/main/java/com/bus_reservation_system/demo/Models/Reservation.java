@@ -2,12 +2,11 @@ package com.bus_reservation_system.demo.Models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import javax.persistence.*;
-import javax.validation.constraints.Future;
-import javax.validation.constraints.FutureOrPresent;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -16,32 +15,34 @@ import java.time.LocalTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 public class Reservation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer reservationId;
 
-    @NotNull(message = "status must not be null")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String reservationStatus;
 
     @NotNull(message = "reservation type must not be null")
     private String reservationType;
 
-    @FutureOrPresent(message = "Enter a valid date")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDate reservationDate;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
-    @FutureOrPresent(message = "Enter a valid time")
+    @JsonIgnore
     private LocalTime reservationTime;
+
+    private Integer numberOfSeats;
 
     private String source;
 
     private String destination;
+
     @JsonIgnore
     @OneToOne
     private Bus bus;
+
     @JsonIgnore
     @ManyToOne
     private User user;

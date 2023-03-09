@@ -10,17 +10,17 @@ import java.util.List;
 
 public interface RouteService {
 
-    public RouteDTO addRoute(Route route, String key) throws RouteException, LoginException;
+    public RouteDTO addRoute(Route route) throws RouteException, LoginException;
 
-    public Route updateRoute(Route route, String key) throws RouteException, LoginException;
+    public Route updateRoute(Route route) throws RouteException, LoginException;
 
-    public RouteDTO viewRoute(Integer routeId, String key) throws RouteException, LoginException;
+    public RouteDTO viewRoute(Integer routeId) throws RouteException, LoginException;
 
-    public Route deleteRoute(Integer routeId, String key) throws RouteException, LoginException;
+    public Route deleteRoute(Integer routeId) throws RouteException, LoginException;
 
-    public List<RouteDTO> viewAllRoute(String key ,String check) throws LoginException, RouteException;
+    public List<RouteDTO> viewAllRoute() throws LoginException, RouteException;
 
-    public Route assignRouteToBus(Integer busId, Integer routeId, String key) throws LoginException, BusException, RouteException;
+    public Route assignRouteToBus(Integer busId, Integer routeId) throws LoginException, BusException, RouteException;
 
 
 

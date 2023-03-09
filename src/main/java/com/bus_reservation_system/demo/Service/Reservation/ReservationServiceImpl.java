@@ -6,20 +6,18 @@ import com.bus_reservation_system.demo.ExceptionHandler.ReservationException;
 import com.bus_reservation_system.demo.Models.*;
 import com.bus_reservation_system.demo.Repository.*;
 import com.bus_reservation_system.demo.Service.Bus.BusService;
-import com.bus_reservation_system.demo.Service.LoginService.Admin.AdminAuthentication;
-import com.bus_reservation_system.demo.Service.LoginService.User.UserAuthentication;
+import com.bus_reservation_system.demo.Service.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class ReservationServiceImpl implements ReservationService{
 
-    @Autowired
-    UserAuthentication userAuthentication;
 
     @Autowired
     BusService busService;
@@ -31,25 +29,29 @@ public class ReservationServiceImpl implements ReservationService{
     UserRepo userRepo;
 
     @Autowired
-    AdminAuthentication adminAuthentication;
+    UserService userService;
+
 
 
     @Override
-    public Reservation addReservation(Reservation reservation, String token, Integer busId) throws LoginException, ReservationException {
-
-        UserCurrentSession userCurrentSession = userAuthentication.authenticateUserLoginSession(token);
+    public Reservation addReservation(Reservation reservation, Integer busId, Authentication authentication) throws LoginException, ReservationException {
 
         Bus bus = busService.authenticateBus(busId);
 
-        if(bus.getAvailableSeats()==0){
+        if(bus.getAvailableSeats()<reservation.getNumberOfSeats()){
+
             throw new BusException("Seats not available");
+
         }
 
-        User user = userAuthentication.authenticateUser(userCurrentSession.getUserId());
+        User user = userService.validateUserByEmail(authentication.getName());
 
-        bus.setAvailableSeats(bus.getAvailableSeats()-1);
+        bus.setAvailableSeats(bus.getAvailableSeats()-reservation.getNumberOfSeats());
+
         reservation.setUser(user);
+
         reservation.setBus(bus);
+
         user.getReservations().add(reservation);
 
         userRepo.save(user);
@@ -59,51 +61,70 @@ public class ReservationServiceImpl implements ReservationService{
     }
 
     @Override
-    public Reservation updateReservation(Reservation reservation, String token) throws LoginException, ReservationException {
+    public Reservation updateReservation(Reservation reservation) throws LoginException, ReservationException {
 
-        adminAuthentication.authenticateAdminLoginSession(token);
+        Reservation savedReservation =  authenticateReservation(reservation.getReservationId());
 
-        authenticateReservation(reservation.getReservationId());
+        reservation.setReservationDate(LocalDate.now());
+
+        reservation.setReservationTime(LocalTime.now());
+
+        reservation.setUser(savedReservation.getUser());
+
+        reservation.setBus(savedReservation.getBus());
 
         return reservationRepo.save(reservation);
 
     }
 
     @Override
-    public Reservation cancelReservation(Integer rId, String token) throws ReservationException, LoginException {
+    public Reservation cancelReservation(Integer rId, Authentication authentication) throws ReservationException, LoginException {
 
-        UserCurrentSession userCurrentSession = userAuthentication.authenticateUserLoginSession(token);
+        User user = userService.validateUserByEmail(authentication.getName());
 
-        User user = userAuthentication.authenticateUser(userCurrentSession.getUserId());
+       Reservation reservation = authenticateReservation(rId);
 
-        for(Reservation reservation:user.getReservations()){
-            if(reservation.getReservationId()==rId){
-                reservationRepo.delete(reservation);
-                return reservation;
-            }
-        }
+       if(reservation.getUser().getUserid()==user.getUserid()){
+
+           reservationRepo.delete(reservation);
+
+           return reservation;
+       }
+       else {
+           Set<Authority> authorities = user.getAuthorities();
+
+           for(Authority authority : authorities){
+
+               if(authority.getRole().equals("ROLE_ADMIN")){
+
+                   reservationRepo.delete(reservation);
+
+                   return reservation;
+
+               }
+           }
+       }
+
         throw new ReservationException("Reservation does not exists in user account with reservation id : "+rId);
 
     }
 
     @Override
-    public Reservation viewReservationById(Integer rId, String token) throws ReservationException, LoginException {
-
-        adminAuthentication.authenticateAdminLoginSession(token);
+    public Reservation viewReservationById(Integer rId) throws ReservationException, LoginException {
 
         return authenticateReservation(rId);
 
     }
 
     @Override
-    public List<Reservation> viewReservationByDate(LocalDate date, String token) throws ReservationException, LoginException {
-
-        adminAuthentication.authenticateAdminLoginSession(token);
+    public List<Reservation> viewReservationByDate(LocalDate date) throws ReservationException, LoginException {
 
         List<Reservation> reservations = reservationRepo.findByReservationDate(date);
 
         if (reservations.isEmpty()){
+
             throw new ReservationException("No reservations found with reservation date : "+date);
+
         }
 
         return reservations;
@@ -111,14 +132,14 @@ public class ReservationServiceImpl implements ReservationService{
     }
 
     @Override
-    public List<Reservation> viewAllReservation(String token) throws LoginException, ReservationException {
-
-        adminAuthentication.authenticateAdminLoginSession(token);
+    public List<Reservation> viewAllReservation() throws LoginException, ReservationException {
 
         List<Reservation> reservations = reservationRepo.findAll();
 
         if(reservations.isEmpty()){
+
             throw new ReservationException("Reservation not found");
+
         }
 
         return reservations;
@@ -126,28 +147,23 @@ public class ReservationServiceImpl implements ReservationService{
     }
 
     @Override
-    public List<Reservation> viewAllReservationForUser(String token) throws ReservationException, LoginException {
+    public List<Reservation> viewAllReservationForUser(Authentication authentication) throws ReservationException, LoginException {
 
-        UserCurrentSession userCurrentSession = userAuthentication.authenticateUserLoginSession(token);
-
-        User user = userAuthentication.authenticateUser(userCurrentSession.getUserId());
+        User user = userService.validateUserByEmail(authentication.getName());
 
         if(user.getReservations().isEmpty()){
+
             throw new ReservationException("No reservations found");
+
         }
+
         return user.getReservations();
 
     }
 
     private Reservation authenticateReservation(Integer rId) throws ReservationException{
 
-        Optional<Reservation> reservationOpt = reservationRepo.findById(rId);
-
-        if(reservationOpt.isEmpty()){
-            throw new ReservationException("Reservation does not exists with reservationId : "+rId);
-        }
-
-        return reservationOpt.get();
+        return reservationRepo.findById(rId).orElseThrow(()-> new ReservationException("reservation does not exists with reservation id : "+rId));
 
     }
 }

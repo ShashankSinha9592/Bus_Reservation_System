@@ -2,12 +2,8 @@ package com.bus_reservation_system.demo.DTO;
 
 import com.bus_reservation_system.demo.Models.Driver;
 import lombok.*;
-
-import javax.persistence.Embedded;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.time.LocalTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

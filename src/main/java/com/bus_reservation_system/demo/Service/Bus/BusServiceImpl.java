@@ -3,17 +3,12 @@ package com.bus_reservation_system.demo.Service.Bus;
 import com.bus_reservation_system.demo.DTO.BusDTO;
 import com.bus_reservation_system.demo.DTO.RouteDTO;
 import com.bus_reservation_system.demo.ExceptionHandler.*;
-import com.bus_reservation_system.demo.Models.AdminCurrentSession;
 import com.bus_reservation_system.demo.Models.Bus;
 import com.bus_reservation_system.demo.Models.Route;
 import com.bus_reservation_system.demo.Repository.BusRepo;
 import com.bus_reservation_system.demo.Repository.RouteRepo;
-import com.bus_reservation_system.demo.Service.LoginService.Admin.AdminAuthentication;
-import com.bus_reservation_system.demo.Service.LoginService.User.UserAuthentication;
-import com.bus_reservation_system.demo.Service.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -22,35 +17,28 @@ import java.util.Optional;
 public class BusServiceImpl implements BusService{
 
     @Autowired
-    AdminAuthentication adminAuthentication;
-
-    @Autowired
-    UserAuthentication userAuthentication;
-
-    @Autowired
     private BusRepo busRepo;
 
-    @Autowired
-    UserService userService;
 
     @Autowired
     RouteRepo routeRepo;
 
     @Override
-    public Bus addBus(Bus bus, String token) throws BusException, LoginException {
-
-        adminAuthentication.authenticateAdminLoginSession(token);
+    public Bus addBus(Bus bus) throws BusException, LoginException {
 
         return busRepo.save(bus);
 
     }
 
     @Override
-    public Bus updateBus(Bus bus, String token) throws BusException, LoginException {
+    public Bus updateBus(Bus bus) throws BusException, LoginException {
 
-        AdminCurrentSession adminCurrentSession = adminAuthentication.authenticateAdminLoginSession(token);
 
-        authenticateBus(bus.getBusId());
+        Bus savedBus = authenticateBus(bus.getBusId());
+
+        bus.setRoute(savedBus.getRoute());
+
+        bus.setFeedbacks(savedBus.getFeedbacks());
 
         return busRepo.save(bus);
 
@@ -58,9 +46,7 @@ public class BusServiceImpl implements BusService{
     }
 
     @Override
-    public BusDTO viewBus(Integer busId, String token,String check) throws BusException, LoginException {
-
-        userService.checkUser(check,token);
+    public BusDTO viewBus(Integer busId) throws BusException, LoginException {
 
         Bus bus = authenticateBus(busId);
 
@@ -70,9 +56,7 @@ public class BusServiceImpl implements BusService{
     }
 
     @Override
-    public Bus deleteBus(Integer busId, String token) throws BusException, LoginException {
-
-        adminAuthentication.authenticateAdminLoginSession(token);
+    public Bus deleteBus(Integer busId) throws BusException, LoginException {
 
         Bus bus = authenticateBus(busId);
 
@@ -83,9 +67,7 @@ public class BusServiceImpl implements BusService{
     }
 
     @Override
-    public List<BusDTO> viewBusByType(String busType, String token, String check) throws BusException, LoginException {
-
-        userService.checkUser(check,token);
+    public List<BusDTO> viewBusByType(String busType) throws BusException, LoginException {
 
         List<Bus> buses = busRepo.findByBusType(busType);
 
@@ -107,10 +89,7 @@ public class BusServiceImpl implements BusService{
     }
 
     @Override
-    public List<BusDTO> viewAllBus(String token) throws BusException, LoginException {
-
-        adminAuthentication.authenticateAdminLoginSession(token);
-
+    public List<BusDTO> viewAllBus() throws BusException, LoginException {
 
         List<Bus> buses = busRepo.findAll();
 
@@ -129,9 +108,7 @@ public class BusServiceImpl implements BusService{
     }
 
     @Override
-    public List<BusDTO> viewBusesByRoute(String startRoute, String endRoute, String token , String check) throws BusException, RouteException, LoginException {
-
-        userService.checkUser(check,token);
+    public List<BusDTO> viewBusesByRoute(String startRoute, String endRoute) throws BusException, RouteException, LoginException {
 
         Optional<Route> routeOpt = routeRepo.findByRoute(startRoute,endRoute);
 

@@ -1,12 +1,13 @@
 package com.bus_reservation_system.demo.Models;
 
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import javax.validation.constraints.*;
-
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 @Getter
 @Setter
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Driver {

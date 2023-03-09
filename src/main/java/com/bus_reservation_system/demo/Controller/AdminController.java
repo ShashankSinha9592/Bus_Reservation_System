@@ -3,32 +3,28 @@ package com.bus_reservation_system.demo.Controller;
 
 import com.bus_reservation_system.demo.DTO.BusDTO;
 import com.bus_reservation_system.demo.DTO.RouteDTO;
-import com.bus_reservation_system.demo.ExceptionHandler.AdminException;
 import com.bus_reservation_system.demo.Models.*;
-import com.bus_reservation_system.demo.Service.AdminService.AdminService;
 import com.bus_reservation_system.demo.Service.Bus.BusService;
 import com.bus_reservation_system.demo.Service.Feedback.FeedbackService;
 import com.bus_reservation_system.demo.Service.Reservation.ReservationService;
 import com.bus_reservation_system.demo.Service.Route.RouteService;
 import com.bus_reservation_system.demo.Service.User.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("busreservation/admin")
 public class AdminController {
 
     @Autowired
     BusService busService;
-
-    @Autowired
-    AdminService adminService;
 
     @Autowired
     FeedbackService feedbackService;
@@ -42,235 +38,161 @@ public class AdminController {
     @Autowired
     UserService userService;
 
-    @PostMapping("/registeradmin/{requestToken}")
-    public ResponseEntity<Admin> registerAdminHandler(@Valid @RequestBody Admin admin, @PathVariable String requestToken){
 
-        String token = "abcd1234";
+    @PostMapping("/registerbus")
+    public ResponseEntity<Bus> registerBusHandler(@Valid @RequestBody Bus bus){
 
-        Admin savedAdmin=null;
-
-        if(adminService.checkToken(token,requestToken)){
-
-            savedAdmin =  adminService.registerAdmin(admin);
-
-        }
-
-        return new ResponseEntity<>(savedAdmin, HttpStatus.CREATED);
-
-    }
-
-    @PostMapping("/registerbus/{token}")
-    public ResponseEntity<Bus> registerBusHandler(@Valid @RequestBody Bus bus, @PathVariable String token){
-
-        Bus savedBus = busService.addBus(bus,token);
+        Bus savedBus = busService.addBus(bus);
 
         return new ResponseEntity<>(savedBus,HttpStatus.CREATED);
 
     }
 
-    @PutMapping("/updatebus/{token}")
-    public ResponseEntity<Bus> updateBusHandler(@Valid @RequestBody Bus bus, @PathVariable String token){
+    @PutMapping("/updatebus")
+    public ResponseEntity<Bus> updateBusHandler(@Valid @RequestBody Bus bus){
 
-        Bus savedBus = busService.updateBus(bus,token);
-
-        return new ResponseEntity<>(savedBus,HttpStatus.ACCEPTED);
-
-    }
-
-    @GetMapping("/viewbus/{busId}/{token}")
-    public ResponseEntity<BusDTO> viewBusHandler(@PathVariable Integer busId,  @PathVariable String token){
-
-        BusDTO savedBus = busService.viewBus(busId,token,"admin");
+        Bus savedBus = busService.updateBus(bus);
 
         return new ResponseEntity<>(savedBus,HttpStatus.ACCEPTED);
 
     }
 
-    @DeleteMapping("/deletebus/{busId}/{token}")
-    public ResponseEntity<Bus> deleteBusHandler(@PathVariable Integer busId,  @PathVariable String token){
+    @DeleteMapping("/deletebus/{busId}")
+    public ResponseEntity<Bus> deleteBusHandler(@PathVariable Integer busId){
 
-        Bus savedBus = busService.deleteBus(busId,token);
-
-        return new ResponseEntity<>(savedBus,HttpStatus.ACCEPTED);
-
-    }
-
-    @GetMapping("/viewallbus/{token}")
-    public ResponseEntity<List<BusDTO>> viewAllBusHandler(@PathVariable String token){
-
-        List<BusDTO> savedBus = busService.viewAllBus(token);
+        Bus savedBus = busService.deleteBus(busId);
 
         return new ResponseEntity<>(savedBus,HttpStatus.ACCEPTED);
 
     }
 
-    @GetMapping("/viewbusbytype/{busType}/{token}")
-    public ResponseEntity<List<BusDTO>> viewAllBusByTypeHandler(@PathVariable String busType , @PathVariable String token){
+    @GetMapping("/viewallbus")
+    public ResponseEntity<List<BusDTO>> viewAllBusHandler(){
 
-        List<BusDTO> savedBus = busService.viewBusByType(busType,token,"admin");
+        List<BusDTO> savedBus = busService.viewAllBus();
 
         return new ResponseEntity<>(savedBus,HttpStatus.ACCEPTED);
 
     }
 
-    @GetMapping("/viewfeedback/{feedbackId}/{token}")
-    public ResponseEntity<Feedback> viewFeedbackByIdHandler(@PathVariable Integer feedbackId, @PathVariable String token){
+    @GetMapping("/viewfeedback/{feedbackId}")
+    public ResponseEntity<Feedback> viewFeedbackByIdHandler(@PathVariable Integer feedbackId){
 
-        Feedback feedback = feedbackService.viewFeedbackById(feedbackId,token);
+        Feedback feedback = feedbackService.viewFeedbackById(feedbackId);
 
         return new ResponseEntity<>(feedback,HttpStatus.OK);
 
     }
 
+    @GetMapping("/viewallfeedback")
+    public ResponseEntity<List<Feedback>> viewAllFeedbackHandler(){
 
-    @GetMapping("/viewallfeedback/{token}")
-    public ResponseEntity<List<Feedback>> viewAllFeedbackByIdHandler( @PathVariable String token){
-
-        List<Feedback> feedbacks = feedbackService.viewAllFeedback(token);
-
-        return new ResponseEntity<>(feedbacks,HttpStatus.OK);
-
-    }
-
-    @GetMapping("/viewallfeedbackofbus/{busId}/{token}")
-    public ResponseEntity<List<Feedback>> viewAllFeedbackByIdHandler(@PathVariable Integer busId, @PathVariable String token){
-
-        List<Feedback> feedbacks = feedbackService.viewAllFeedbacksOfBus(busId,token,"admin");
+        List<Feedback> feedbacks = feedbackService.viewAllFeedback();
 
         return new ResponseEntity<>(feedbacks,HttpStatus.OK);
 
     }
 
+    @PutMapping("/updatereservation")
+    public ResponseEntity<Reservation> updateReservationHandler(@Valid @RequestBody Reservation reservation){
 
-    @PutMapping("/updatereservation/{token}")
-    public ResponseEntity<Reservation> updateReservationHandler(@Valid @RequestBody Reservation reservation , @PathVariable String token){
-
-        Reservation updatedReservation = reservationService.updateReservation(reservation,token);
+        Reservation updatedReservation = reservationService.updateReservation(reservation);
 
         return new ResponseEntity<>(updatedReservation,HttpStatus.CREATED);
 
     }
 
 
-    @GetMapping("/viewreservation/{reservationId}/{token}")
-    public ResponseEntity<Reservation> viewReservationHandler(@PathVariable Integer reservationId , @PathVariable String token){
+    @GetMapping("/viewreservation/{reservationId}")
+    public ResponseEntity<Reservation> viewReservationHandler(@PathVariable Integer reservationId){
 
-        Reservation reservation = reservationService.viewReservationById(reservationId,token);
+        Reservation reservation = reservationService.viewReservationById(reservationId);
 
         return new ResponseEntity<>(reservation,HttpStatus.OK);
 
     }
 
-    @GetMapping("/viewreservationbydate/{date}/{token}")
-    public ResponseEntity<List<Reservation>> viewReservationByDateHandler(@PathVariable String date , @PathVariable String token){
+    @GetMapping("/viewreservationbydate/{date}")
+    public ResponseEntity<List<Reservation>> viewReservationByDateHandler(@PathVariable LocalDate date){
 
-        LocalDate localDate = LocalDate.parse(date);
 
-        List<Reservation> reservations = reservationService.viewReservationByDate(localDate,token);
-
-        return new ResponseEntity<>(reservations,HttpStatus.OK);
-
-    }
-
-    @GetMapping("/viewallreservation/{token}")
-    public ResponseEntity<List<Reservation>> viewallReservationHandler(@PathVariable String token){
-
-        List<Reservation> reservations = reservationService.viewAllReservation(token);
+        List<Reservation> reservations = reservationService.viewReservationByDate(date);
 
         return new ResponseEntity<>(reservations,HttpStatus.OK);
 
     }
 
-    @PostMapping("/addroute/{token}")
-    public ResponseEntity<RouteDTO> registerRouteHandler(@Valid @RequestBody Route route , @PathVariable String token){
+    @GetMapping("/viewallreservation")
+    public ResponseEntity<List<Reservation>> viewallReservationHandler(){
 
-        RouteDTO routeDTO = routeService.addRoute(route,token);
+        List<Reservation> reservations = reservationService.viewAllReservation();
+
+        return new ResponseEntity<>(reservations,HttpStatus.OK);
+
+    }
+
+    @PostMapping("/addroute")
+    public ResponseEntity<RouteDTO> registerRouteHandler(@Valid @RequestBody Route route){
+
+        RouteDTO routeDTO = routeService.addRoute(route);
 
         return new ResponseEntity<>(routeDTO,HttpStatus.CREATED);
 
     }
 
-    @PutMapping("/updateroute/{token}")
-    public ResponseEntity<Route> updateRouteHandler(@Valid @RequestBody Route route , @PathVariable String token){
+    @PutMapping("/updateroute")
+    public ResponseEntity<Route> updateRouteHandler(@Valid @RequestBody Route route ){
 
-        Route updateRoute = routeService.updateRoute(route,token);
+        Route updateRoute = routeService.updateRoute(route);
 
         return new ResponseEntity<>(updateRoute,HttpStatus.CREATED);
 
     }
 
-    @GetMapping("/viewroute/{routeId}/{token}")
-    public ResponseEntity<RouteDTO> viewRouteHandler(@PathVariable Integer routeId , @PathVariable String token){
+    @GetMapping("/viewroute/{routeId}")
+    public ResponseEntity<RouteDTO> viewRouteHandler(@PathVariable Integer routeId){
 
-        RouteDTO routeDTO = routeService.viewRoute(routeId,token);
+        RouteDTO routeDTO = routeService.viewRoute(routeId);
 
         return new ResponseEntity<>(routeDTO,HttpStatus.OK);
 
     }
 
-    @DeleteMapping("/deleteroute/{routeId}/{token}")
-    public ResponseEntity<Route> deleteRouteHandler(@PathVariable Integer routeId , @PathVariable String token){
+    @DeleteMapping("/deleteroute/{routeId}")
+    public ResponseEntity<Route> deleteRouteHandler(@PathVariable Integer routeId){
 
-        Route removedRoute = routeService.deleteRoute(routeId,token);
+        Route removedRoute = routeService.deleteRoute(routeId);
 
         return new ResponseEntity<>(removedRoute,HttpStatus.OK);
 
     }
 
-    @GetMapping("/viewallroute/{routeId}/{token}")
-    public ResponseEntity<List<RouteDTO>> viewAllRouteHandler( @PathVariable String token){
+    @GetMapping("/viewallroute")
+    public ResponseEntity<List<RouteDTO>> viewAllRouteHandler(){
 
-        List<RouteDTO> routeDTOs = routeService.viewAllRoute(token,"admin");
+        List<RouteDTO> routeDTOs = routeService.viewAllRoute();
 
         return new ResponseEntity<>(routeDTOs,HttpStatus.OK);
 
     }
 
-    @PatchMapping("/assignroutetobus/{busId}/{routeId}/{token}")
-    public ResponseEntity<Route> assignRouteToBusHandler(@PathVariable Integer busId, @PathVariable Integer routeId, @PathVariable String token){
+    @PatchMapping("/assignroutetobus/{busId}/{routeId}")
+    public ResponseEntity<Route> assignRouteToBusHandler(@PathVariable Integer busId, @PathVariable Integer routeId){
 
-        Route route = routeService.assignRouteToBus(busId,routeId,token);
+        Route route = routeService.assignRouteToBus(busId,routeId);
 
         return new ResponseEntity<>(route, HttpStatus.OK);
 
     }
 
-    @GetMapping("/viewuser/{userId}/{token}")
-    public ResponseEntity<User> viewUserHandler(@PathVariable Integer userId, @PathVariable String token){
+    @GetMapping("/viewalluser")
+    public ResponseEntity<List<User>> viewAllUserHandler(){
 
-        User user = userService.viewUser(userId, token, "admin");
-
-        return new ResponseEntity<>(user,HttpStatus.OK);
-
-    }
-
-    @DeleteMapping("/deleteuser/{userId}/{token}")
-    public ResponseEntity<User> deleteUserHandler(@PathVariable Integer userId, @PathVariable String token){
-
-        User user = userService.deleteUser(userId, token);
-
-        return new ResponseEntity<>(user,HttpStatus.OK);
-
-    }
-
-    @GetMapping("/viewalluser/{token}")
-    public ResponseEntity<List<User>> viewAllUserHandler(@PathVariable String token){
-
-        List<User> users = userService.viewAllUser(token);
+        List<User> users = userService.viewAllUser();
 
         return new ResponseEntity<>(users , HttpStatus.OK);
 
     }
-
-    @GetMapping("/viewbusbyroute/{startRoute}/{endRoute}/{token}")
-    public ResponseEntity<List<BusDTO>> getBusByRoute(@PathVariable String startRoute, @PathVariable String endRoute, @PathVariable String token){
-
-        List<BusDTO> buses = busService.viewBusesByRoute(startRoute,endRoute,token,"admin");
-
-        return new ResponseEntity<>(buses,HttpStatus.OK);
-
-    }
-
 
 
 }

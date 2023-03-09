@@ -1,18 +1,18 @@
 package com.bus_reservation_system.demo.Models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 
-import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import java.time.LocalDate;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Entity
 public class Feedback {
 
@@ -34,7 +34,9 @@ public class Feedback {
 
     private String comments;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private LocalDate feedbackDate;
+
     @JsonIgnore
     @ManyToOne
     private User user;
