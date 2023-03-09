@@ -40,6 +40,8 @@ public class UserServiceImpl implements UserService{
             throw new UserException("Password must contain Integer , Symbol , Uppercase and lowercase");
         }
 
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         Set<Authority> authorities = user.getAuthorities();
 
         for(Authority auth : authorities){

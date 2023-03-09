@@ -137,8 +137,6 @@ public class UserController {
     @PostMapping("/registeruser")
     public ResponseEntity<User> registerUserHandler(@Valid @RequestBody User user){
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
         for(Authority auth : user.getAuthorities()){
             auth.setRole("ROLE_"+auth.getRole().toUpperCase());
 
