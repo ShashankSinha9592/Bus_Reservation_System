@@ -6,6 +6,11 @@
 
 <p>A web service solution designed to provide customers with a personalized easy-to-utilize user experience for booking and purchasing bus tickets online.</p>
 
+<h3>Database Schemas</h3>
+
+![Screenshot (96)](https://user-images.githubusercontent.com/102857782/231252527-23c8491f-3e1f-40ce-95df-b79e0d9720d4.png)
+
+
 
 <h3>Tech Stacks</h3>
 
